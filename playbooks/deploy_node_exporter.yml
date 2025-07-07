@@ -1,5 +1,7 @@
 - name: Deploy Node Exporter
   hosts: node_exporter_targets
   become: yes
-  roles:
+  roles: 
     - node_exporter
+
+
