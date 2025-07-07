@@ -1,0 +1,53 @@
+---
+- name: Install Grafana dependencies
+  apt:
+    name: apt-transport-https
+    state: present
+    update_cache: yes
+
+- name: Download Grafana OSS .deb package
+  get_url:
+    url: https://dl.grafana.com/enterprise/release/grafana-enterprise_12.0.2_amd64.deb
+    dest: /tmp/grafana-enterprise_12.0.2_amd64.deb
+    mode: '0644'
+
+- name: Install Grafana
+  apt:
+    deb: /tmp/grafana-enterprise_12.0.2_amd64.deb
+  become: true
+
+
+
+- name: Ensure Grafana service is enabled and started
+  systemd:
+    name: grafana-server
+    enabled: yes
+    state: started
+
+- name: Wait for Grafana to be up
+  uri:
+    url: http://localhost:3000
+    status_code: 200
+    validate_certs: no
+  register: result
+  until: result.status == 200
+  retries: 10
+  delay: 5
+
+- name: Configure Prometheus data source
+  copy:
+    content: |
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://localhost:9090
+          isDefault: true
+    dest: /etc/grafana/provisioning/datasources/prometheus.yml
+    mode: 0644
+
+- name: Restart Grafana to apply datasource
+  systemd:
+    name: grafana-server
+    state: restarted
