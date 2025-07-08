@@ -1,0 +1,232 @@
+{
+
+  "id": null,
+
+  "uid": null,
+
+  "title": "Linux Host Monitoring - Node Exporter",
+
+  "tags": ["node_exporter", "prometheus", "linux", "alerting"],
+
+  "timezone": "browser",
+
+  "schemaVersion": 36,
+
+  "version": 1,
+
+  "refresh": "30s",
+
+  "templating": {
+
+    "list": [
+
+      {
+
+        "name": "host",
+
+        "label": "Host",
+
+        "type": "query",
+
+        "datasource": "Prometheus",
+
+        "query": "label_values(node_uname_info, instance)",
+
+        "multi": true,
+
+        "includeAll": true,
+
+        "refresh": 1
+
+      }
+
+    ]
+
+  },
+
+  "panels": [
+
+    {
+
+      "type": "timeseries",
+
+      "title": "CPU Usage (%)",
+
+      "datasource": "Prometheus",
+
+      "targets": [
+
+        {
+
+          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{instance=~\"$host\",mode=\"idle\"}[5m])) * 100)",
+
+          "legendFormat": "{{instance}}"
+
+        }
+
+      ],
+
+      "fieldConfig": {
+
+        "defaults": { "unit": "percent" }
+
+      },
+
+      "alert": {
+
+        "name": "High CPU usage",
+
+        "conditions": [
+
+          {
+
+            "evaluator": { "params": [80], "type": "gt" },
+
+            "operator": { "type": "and" },
+
+            "query": { "params": ["A"] },
+
+            "reducer": { "params": [], "type": "avg" },
+
+            "type": "query"
+
+          }
+
+        ],
+
+        "frequency": "1m",
+
+        "handler": 1,
+
+        "noDataState": "no_data",
+
+        "executionErrorState": "alerting"
+
+      }
+
+    },
+
+    {
+
+      "type": "timeseries",
+
+      "title": "Memory Usage (%)",
+
+      "datasource": "Prometheus",
+
+      "targets": [
+
+        {
+
+          "expr": "(node_memory_MemTotal_bytes{instance=~\"$host\"} - node_memory_MemAvailable_bytes{instance=~\"$host\"}) / node_memory_MemTotal_bytes{instance=~\"$host\"} * 100",
+
+          "legendFormat": "{{instance}}"
+
+        }
+
+      ],
+
+      "fieldConfig": {
+
+        "defaults": { "unit": "percent" }
+
+      },
+
+      "alert": {
+
+        "name": "High Memory usage",
+
+        "conditions": [
+
+          {
+
+            "evaluator": { "params": [80], "type": "gt" },
+
+            "operator": { "type": "and" },
+
+            "query": { "params": ["A"] },
+
+            "reducer": { "params": [], "type": "avg" },
+
+            "type": "query"
+
+          }
+
+        ],
+
+        "frequency": "1m",
+
+        "handler": 1,
+
+        "noDataState": "no_data",
+
+        "executionErrorState": "alerting"
+
+      }
+
+    },
+
+    {
+
+      "type": "timeseries",
+
+      "title": "Disk Usage (%)",
+
+      "datasource": "Prometheus",
+
+      "targets": [
+
+        {
+
+          "expr": "(node_filesystem_size_bytes{instance=~\"$host\",fstype!~\"tmpfs|overlay\"} - node_filesystem_free_bytes{instance=~\"$host\",fstype!~\"tmpfs|overlay\"}) / node_filesystem_size_bytes{instance=~\"$host\",fstype!~\"tmpfs|overlay\"} * 100",
+
+          "legendFormat": "{{instance}}:{{mountpoint}}"
+
+        }
+
+      ],
+
+      "fieldConfig": {
+
+        "defaults": { "unit": "percent" }
+
+      },
+
+      "alert": {
+
+        "name": "High Disk usage",
+
+        "conditions": [
+
+          {
+
+            "evaluator": { "params": [90], "type": "gt" },
+
+            "operator": { "type": "and" },
+
+            "query": { "params": ["A"] },
+
+            "reducer": { "params": [], "type": "avg" },
+
+            "type": "query"
+
+          }
+
+        ],
+
+        "frequency": "1m",
+
+        "handler": 1,
+
+        "noDataState": "no_data",
+
+        "executionErrorState": "alerting"
+
+      }
+
+    }
+
+  ]
+
+}
+

@@ -51,3 +51,22 @@
   systemd:
     name: grafana-server
     state: restarted
+
+
+- name: Upload Linux Node Exporter Dashboard to Grafana
+  uri:
+    url: "http://localhost:3000/api/dashboards/db"
+    method: POST
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ grafana_api_key }}"
+    body: "{{ lookup('file', 'files/grafana_dashboard.json') | from_json | to_json }}"
+    body_format: json
+    status_code: 200
+  register: grafana_dashboard_upload
+  tags: grafana
+
+- debug:
+   var: grafana_dashboard_upload
+
+
